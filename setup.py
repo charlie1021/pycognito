@@ -27,6 +27,7 @@ setup(
     install_requires=[
         "boto3>=1.10.49",
         "envs>=1.3",
+        "python-dateutil>=1.4"
         "python-jose[cryptography]>=3.2.0",
         "requests>=2.22.0",
     ],

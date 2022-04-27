@@ -6,6 +6,7 @@ import boto3
 from envs import env
 from jose import JWTError, jwt
 import requests
+from dateutil.parser import parse as parse_date
 
 from .aws_srp import AWSSRP
 from .exceptions import TokenVerificationException
@@ -738,6 +739,25 @@ class Cognito:
             tokens["AuthenticationResult"]["AccessToken"], "access_token", "access"
         )
         self.token_type = tokens["AuthenticationResult"]["TokenType"]
+
+        if tokens["AuthenticationResult"].get("ExpiresIn"):
+            self.expires_in = tokens["AuthenticationResult"]["ExpiresIn"]
+
+            # set a "default" reference date from which we calculate when the token should be expired
+            # we're setting the expiration slightly before now since we were issued the token slightly before this
+            # calculation occurs
+            reference_datetime = datetime.datetime.utcnow() - datetime.timedelta(minutes=2)
+
+            # if available, the http date header may be more reliable
+            http_date_header = (tokens["ResponseMetadata"].get("HTTPHeaders") or {}).get("date")
+
+            if http_date_header:
+                try:
+                    reference_datetime = parse_date(http_date_header).replace(tzinfo=None)
+                except:
+                    pass
+
+            self.expires_datetime = reference_datetime
 
     def _set_attributes(self, response, attribute_dict):
         """
