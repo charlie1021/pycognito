@@ -757,7 +757,7 @@ class Cognito:
                 except:
                     pass
 
-            self.expires_datetime = reference_datetime
+            self.expires_datetime = reference_datetime + datetime.timedelta(seconds=self.expires_in)
 
     def _set_attributes(self, response, attribute_dict):
         """
